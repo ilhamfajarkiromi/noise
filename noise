@@ -1,0 +1,71 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+def add_noise(signal, SNR, t):
+    # Generate Gaussian Noise with zero mean and unit variance
+    noise = np.random.randn(len(signal))
+
+    # Scale the input signal accordingly for the given SNR.
+    scaledSignal = np.std(noise) / np.std(signal) * np.sqrt(10 ** (SNR / 10)) * signal
+
+    # Calculate Signal power and noise power
+    signalPower = (np.linalg.norm(scaledSignal) ** 2) / len(scaledSignal)
+    noisePower = (np.linalg.norm(noise) ** 2) / len(noise)
+
+    # Calculate Signal to noise ratio for the scaledSignal and generated Noise
+    SNRratio = signalPower / noisePower
+    measuredSNR = 10 * np.log10(SNRratio)
+
+    # Add the scaled signal with the generated noise
+    signalWithNoise = scaledSignal + noise
+
+    # Plotting the signals
+    plt.figure(figsize=(8, 6))
+
+    plt.subplot(3, 1, 1)
+    plt.plot(t, signal)
+    plt.xlabel('Time (s)')
+    plt.ylabel('Amplitude (V)')
+    plt.title('Input Signal')
+
+    plt.subplot(3, 1, 2)
+    plt.plot(t, noise)
+    plt.xlabel('Time (s)')
+    plt.ylabel('Amplitude (V)')
+    plt.title('Generated Noise')
+
+    plt.subplot(3, 1, 3)
+    plt.plot(t, signalWithNoise)
+    plt.xlabel('Time (s)')
+    plt.ylabel('Amplitude (V)')
+    plt.title(f'Signal + Noise for SNR= {measuredSNR:.2f} dB')
+
+    plt.tight_layout()
+    plt.show()
+
+# Input from user
+bits_input = input("Enter the bit sequence (0 and 1, without spaces): ")
+bits = list(map(int, bits_input))
+bit_rate = float(input("Enter the bit rate (bits per second): "))
+carrier_freq = float(input("Enter the carrier frequency: "))
+amplitude = float(input("Enter the signal amplitude: "))
+SNR=float(input("enter the snr:"))
+
+
+
+# Calculate duration of each bit and time array
+bit_duration = 1 / bit_rate
+t = np.linspace(0, len(bits) * bit_duration, len(bits) * 1000)  # Sampled at 1000 times the bit rate
+
+# Create the modulated signal
+carrier_signal = amplitude * np.sin(2 * np.pi * carrier_freq * t)
+signal = np.zeros_like(t)
+
+for i, bit in enumerate(bits):
+    if bit == 1:
+        signal[i * 1000: (i + 1) * 1000] = carrier_signal[i * 1000: (i + 1) * 1000]
+
+
+# Add noise and plot the signals
+add_noise(signal, SNR, t)
+
